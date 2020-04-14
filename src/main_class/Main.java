@@ -1,6 +1,6 @@
 package main_class;
 
-import classes.OwnRectangle;
+import classes.OwnStackPane;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -13,17 +13,18 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.stage.Stage;
+import jdk.jfr.Description;
 
 public class Main extends Application implements EventHandler<MouseEvent> {
 
-    //to change size of grid just change the below array row and column count
-    private static final OwnRectangle[][] array = new OwnRectangle[5][5];
+    //to change size of grid just change the below array's row and column count
+    private static final OwnStackPane[][] array = new OwnStackPane[5][5];
     private static GridPane gridPane;
-    private static OwnRectangle rectangleGotFirstClicked = null, rectangleGotSecondClicked = null;
+    private static OwnStackPane paneGotFirstClicked = null;
+    private static OwnStackPane paneGotSecondClicked = null;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -64,15 +65,11 @@ public class Main extends Application implements EventHandler<MouseEvent> {
 
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[0].length; j++) {
-                OwnRectangle rectangle = new OwnRectangle(60, 60, i, j);
+                Rectangle rectangle = new Rectangle(60, 60);
                 rectangle.setFill(Color.WHITE);
                 rectangle.setArcWidth(20);
                 rectangle.setArcHeight(20);
-                rectangle.setOnMouseClicked(this);
-                rectangle.setCursor(Cursor.HAND);
-
                 gridPane.add(rectangle, i, j);
-                array[i][j] = rectangle;
             }
         }
         return gridPane;
@@ -92,20 +89,52 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     @Override
     public void handle(MouseEvent event) {
         Object object = event.getSource();
-        if (object instanceof OwnRectangle) {
-            OwnRectangle rectangle = (OwnRectangle) object;
-            if (rectangleGotFirstClicked != null) {
-                rectangleGotSecondClicked = rectangle;
+        if (object instanceof OwnStackPane) {
+            OwnStackPane stackPane = (OwnStackPane) (object);
+            if (paneGotFirstClicked != null) {
+                paneGotSecondClicked = stackPane;
             } else {
-                rectangleGotFirstClicked = rectangle;
+                paneGotFirstClicked = stackPane;
             }
-            if ((rectangleGotSecondClicked != null)) {
-                checkForMatch();
+
+            if (paneGotSecondClicked != null) {
+                if ((paneGotFirstClicked.getJ() < paneGotSecondClicked.getJ()) &&
+                        (paneGotFirstClicked.isISame(paneGotSecondClicked))) { // to move from left to right
+                    doHorizontalSwap(paneGotFirstClicked, paneGotSecondClicked);
+                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
+                } else if ((paneGotFirstClicked.getJ() > paneGotSecondClicked.getJ()) &&
+                        (paneGotFirstClicked.isISame(paneGotSecondClicked))) { //to move from right to left
+                    doHorizontalSwap(paneGotSecondClicked, paneGotFirstClicked);
+                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
+                } else if ((paneGotFirstClicked.getI() < paneGotSecondClicked.getI()) &&
+                        (paneGotFirstClicked.isJSame(paneGotSecondClicked))) { //to move from top to bottom
+                    doVerticalSwap(paneGotFirstClicked, paneGotSecondClicked);
+                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
+                } else if ((paneGotFirstClicked.getI() > paneGotSecondClicked.getI()) &&
+                        (paneGotFirstClicked.isJSame(paneGotSecondClicked))) { //to move from bottom to top
+                    doVerticalSwap(paneGotSecondClicked, paneGotFirstClicked);
+                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
+                }
+
+                System.out.println("Is swap diagonal? " + isDiagonalSwap());
+
+                paneGotFirstClicked = null;
+                paneGotSecondClicked = null;
             }
         }
     }
 
-    public void checkForMatch() {
+    private void doHorizontalSwap(OwnStackPane first, OwnStackPane second) {
+        first.setTranslateX(70);
+        second.setTranslateX(-70);
+    }
+
+    private void doVerticalSwap(OwnStackPane first, OwnStackPane second) {
+        first.setTranslateY(70);
+        second.setTranslateY(-70);
+    }
+
+    private void doDiagonalSwap(OwnStackPane first, OwnStackPane second) {
 
     }
 
@@ -115,76 +144,87 @@ public class Main extends Application implements EventHandler<MouseEvent> {
      * @param j            refers to the column index in Grid and matrix
      * @return true if it founds a match
      */
-    private boolean checkForVerticalMatch(StackPane shapeItHolds, int i, int j) {
+    @Description("Main Method Zero")
+    private boolean checkForVerticalMatch(OwnStackPane shapeItHolds, int i, int j) {
         if (i == 0) {
             if (
-                    shapeItHolds.equals(array[i + 1][j].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i + 2][j].getShapeItHolds())
+                    shapeItHolds.equals(array[i + 1][j]) &&
+                            shapeItHolds.equals(array[i + 2][j])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i + 1][j].getShapeItHolds().getChildren().clear();
-                array[i + 2][j].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i + 1][j].getChildren().clear();
+                array[i + 2][j].getChildren().clear();
                 return true;
             }
         } else if (i == 4) {
             if (
-                    shapeItHolds.equals(array[i - 1][j].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i - 2][j].getShapeItHolds())
+                    shapeItHolds.equals(array[i - 1][j]) &&
+                            shapeItHolds.equals(array[i - 2][j])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i - 1][j].getShapeItHolds().getChildren().clear();
-                array[i - 2][j].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i - 1][j].getChildren().clear();
+                array[i - 2][j].getChildren().clear();
                 return true;
             }
         } else {
             if (
-                    shapeItHolds.equals(array[i - 1][j].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i + 1][j].getShapeItHolds())
+                    shapeItHolds.equals(array[i - 1][j]) &&
+                            shapeItHolds.equals(array[i + 1][j])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i - 1][j].getShapeItHolds().getChildren().clear();
-                array[i + 1][j].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i - 1][j].getChildren().clear();
+                array[i + 1][j].getChildren().clear();
             }
             return true;
         }
         return false;
     }
-    private boolean checkForHorizontalMatch(StackPane shapeItHolds, int i, int j) {
+
+    @Description("Main method One")
+    private boolean checkForHorizontalMatch(OwnStackPane shapeItHolds, int i, int j) {
         if (j == 0) {
             if (
-                    shapeItHolds.equals(array[i][j + 1].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i][j + 2].getShapeItHolds())
+                    shapeItHolds.equals(array[i][j + 1]) &&
+                            shapeItHolds.equals(array[i][j + 2])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i][j + 1].getShapeItHolds().getChildren().clear();
-                array[i][j + 2].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i][j + 1].getChildren().clear();
+                array[i][j + 2].getChildren().clear();
                 return true;
             }
         } else if (j == 4) {
             if (
-                    shapeItHolds.equals(array[i][j - 1].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i][j - 2].getShapeItHolds())
+                    shapeItHolds.equals(array[i][j - 1]) &&
+                            shapeItHolds.equals(array[i][j - 2])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i][j - 1].getShapeItHolds().getChildren().clear();
-                array[i][j - 2].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i][j - 1].getChildren().clear();
+                array[i][j - 2].getChildren().clear();
                 return true;
             }
         } else {
             if (
-                    shapeItHolds.equals(array[i][j - 1].getShapeItHolds()) &&
-                            shapeItHolds.equals(array[i][j + 1].getShapeItHolds())
+                    shapeItHolds.equals(array[i][j - 1]) &&
+                            shapeItHolds.equals(array[i][j + 1])
             ) {
-                array[i][j].getShapeItHolds().getChildren().clear();
-                array[i][j - 1].getShapeItHolds().getChildren().clear();
-                array[i][j + 1].getShapeItHolds().getChildren().clear();
+                array[i][j].getChildren().clear();
+                array[i][j - 1].getChildren().clear();
+                array[i][j + 1].getChildren().clear();
                 return true;
             }
         }
         return false;
     }
-    private boolean checkForDiagonalMatch(StackPane shapeItHolds, int i, int j) {
-        
+
+//    @Description("Main method Two")
+//    private boolean checkForDiagonalMatch(OwnStackPane shapeItHolds, int i, int j) {
+//
+//    }
+
+    private boolean isDiagonalSwap() {
+        return ((Math.abs(paneGotFirstClicked.getI() - paneGotSecondClicked.getI()) == 1) &&
+                (Math.abs(paneGotFirstClicked.getJ() - paneGotSecondClicked.getJ()) == 1)
+        );
     }
 
     /**
@@ -194,10 +234,10 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     private void fillUpBoard() {
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[0].length; j++) {
-                StackPane stackPane = getStackPane();
-                if (array[j][i].getShapeItHolds() == null) {
+                OwnStackPane stackPane = getStackPane(i, j);
+                if (array[j][i] == null) {
                     gridPane.add(stackPane, j, i);
-                    array[j][i].setShapeItHolds(stackPane);
+                    array[j][i] = (stackPane);
                 }
             }
         }
@@ -206,28 +246,46 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     private Shape getRandomShape() {
         int randomInteger = (int) (0 + Math.random() * 5);
         return switch (randomInteger) {
-            case 0 -> new Rectangle(40, 20);
+            case 0 -> {
+                Rectangle rectangle = new Rectangle(40, 20);
+                rectangle.setFill(Color.GREY);
+                yield rectangle;
+            }
             case 1 -> {
                 Polygon polygon = new Polygon();
                 polygon.getPoints().addAll(37.5, 6.25,
                         56.25, 18.75,
                         37.5, 31.25,
                         18.75, 18.75);
+                polygon.setFill(Color.BLUE);
                 yield polygon;
             }
-            case 2 -> new Ellipse(15, 20);
-            case 3 -> new Circle(10);
-            default -> new Rectangle(30, 30);
+            case 2 -> {
+                Ellipse ellipse = new Ellipse(15, 20);
+                ellipse.setFill(Color.DARKGRAY);
+                yield ellipse;
+            }
+            case 3 -> {
+                Circle circle = new Circle(10);
+                circle.setFill(Color.DARKOLIVEGREEN);
+                yield circle;
+            }
+            default -> {
+                Rectangle rectangle = new Rectangle(30, 30);
+                rectangle.setFill(Color.DARKSLATEBLUE);
+                yield rectangle;
+            }
         };
     }
 
-    private StackPane getStackPane() {
-        StackPane stackPane = new StackPane();
+    private OwnStackPane getStackPane(int i, int j) {
+        OwnStackPane stackPane = new OwnStackPane(i, j);
         stackPane.setAlignment(Pos.CENTER);
         Shape randomShape = getRandomShape();
-        randomShape.setOpacity(0.5);
-        randomShape.setFill(Color.BLUE);
+        randomShape.setOpacity(0.7);
         stackPane.getChildren().add(randomShape);
+        stackPane.setOnMouseClicked(this);
+        stackPane.setCursor(Cursor.HAND);
         return stackPane;
     }
 
