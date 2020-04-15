@@ -3,41 +3,58 @@ package classes;
 import javafx.scene.layout.StackPane;
 
 public class OwnStackPane extends StackPane {
-    private int i;
-    private int j;
+    private int rowIndex;
+    private int columnIndex;
+    private int idOfShape;
 
-    public OwnStackPane(int i, int j) {
+    public OwnStackPane(int rowIndex, int columnIndex) {
         super();
-        this.i = i;
-        this.j = j;
+        this.rowIndex = rowIndex;
+        this.columnIndex = columnIndex;
     }
 
-    public int getI() {
-        return i;
+    public int getRowIndex() {
+        return rowIndex;
     }
 
-    public int getJ() {
-        return j;
+    public int getColumnIndex() {
+        return columnIndex;
     }
 
     public void setIJ(int[] array) {
-        this.i = array[0];
-        this.j = array[1];
+        setRowIndex(array[0]);
+        setColumnIndex(array[1]);
+    }
+
+    public void setRowIndex(int rowIndex) {
+        this.rowIndex = rowIndex;
+    }
+
+    public void setColumnIndex(int columnIndex) {
+        this.columnIndex = columnIndex;
     }
 
     public boolean isISame(OwnStackPane second) {
-        return (this.getI() == second.getI());
+        return this.getRowIndex() == second.getRowIndex();
     }
 
     public boolean isJSame(OwnStackPane second) {
-        return (this.getJ() == second.getJ());
+        return (this.getColumnIndex() == second.getColumnIndex());
+    }
+
+    public int getIdOfShape() {
+        return idOfShape;
+    }
+
+    public void setIdOfShape(int idOfShape) {
+        this.idOfShape = idOfShape;
     }
 
     @Override
     public String toString() {
         return "OwnStackPane{" +
-                "i=" + i +
-                ", j=" + j +
+                "i=" + rowIndex +
+                ", j=" + columnIndex +
                 '}';
     }
 }

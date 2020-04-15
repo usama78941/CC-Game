@@ -63,13 +63,13 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         gridPane.setHgap(10);
         gridPane.setStyle("-fx-background-color: blue");
 
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
+        for (int rowIndex = 0; rowIndex < array.length; rowIndex++) {
+            for (int columnIndex = 0; columnIndex < array[0].length; columnIndex++) {
                 Rectangle rectangle = new Rectangle(60, 60);
                 rectangle.setFill(Color.WHITE);
                 rectangle.setArcWidth(20);
                 rectangle.setArcHeight(20);
-                gridPane.add(rectangle, i, j);
+                gridPane.add(rectangle, rowIndex, columnIndex);
             }
         }
         return gridPane;
@@ -89,6 +89,7 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     @Override
     public void handle(MouseEvent event) {
         Object object = event.getSource();
+
         if (object instanceof OwnStackPane) {
             OwnStackPane stackPane = (OwnStackPane) (object);
             if (paneGotFirstClicked != null) {
@@ -98,26 +99,72 @@ public class Main extends Application implements EventHandler<MouseEvent> {
             }
 
             if (paneGotSecondClicked != null) {
-                if ((paneGotFirstClicked.getJ() < paneGotSecondClicked.getJ()) &&
-                        (paneGotFirstClicked.isISame(paneGotSecondClicked))) { // to move from left to right
+                if (
+                        (paneGotFirstClicked.getColumnIndex() < paneGotSecondClicked.getColumnIndex()) &&
+                                (paneGotFirstClicked.isISame(paneGotSecondClicked))
+                ) {
+                    System.out.println("first: " + paneGotFirstClicked);
+                    System.out.println("second: " + paneGotSecondClicked);
                     doHorizontalSwap(paneGotFirstClicked, paneGotSecondClicked);
-                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
-                } else if ((paneGotFirstClicked.getJ() > paneGotSecondClicked.getJ()) &&
-                        (paneGotFirstClicked.isISame(paneGotSecondClicked))) { //to move from right to left
+                } else if (
+                        (paneGotFirstClicked.getColumnIndex() > paneGotSecondClicked.getColumnIndex()) &&
+                                (paneGotFirstClicked.isISame(paneGotSecondClicked))
+                ) {
+                    System.out.println("first: " + paneGotFirstClicked);
+                    System.out.println("second: " + paneGotSecondClicked);
                     doHorizontalSwap(paneGotSecondClicked, paneGotFirstClicked);
-                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
-                } else if ((paneGotFirstClicked.getI() < paneGotSecondClicked.getI()) &&
-                        (paneGotFirstClicked.isJSame(paneGotSecondClicked))) { //to move from top to bottom
+                } else if (
+                        (paneGotFirstClicked.getRowIndex() < paneGotSecondClicked.getRowIndex()) &&
+                                (paneGotFirstClicked.isJSame(paneGotSecondClicked))
+                ) {
+                    System.out.println("first: " + paneGotFirstClicked);
+                    System.out.println("second: " + paneGotSecondClicked);
                     doVerticalSwap(paneGotFirstClicked, paneGotSecondClicked);
-                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
-                } else if ((paneGotFirstClicked.getI() > paneGotSecondClicked.getI()) &&
-                        (paneGotFirstClicked.isJSame(paneGotSecondClicked))) { //to move from bottom to top
+                } else if (
+                        (paneGotFirstClicked.getRowIndex() > paneGotSecondClicked.getRowIndex()) &&
+                                (paneGotFirstClicked.isJSame(paneGotSecondClicked))
+                ) {
+                    System.out.println("first: " + paneGotFirstClicked);
+                    System.out.println("second: " + paneGotSecondClicked);
                     doVerticalSwap(paneGotSecondClicked, paneGotFirstClicked);
-                    // TODO need to update array in order to check for a triplet to match and also for again swapping further
                 }
+//                printArray();
 
-                System.out.println("Is swap diagonal? " + isDiagonalSwap());
+                if (
+                        checkForHorizontalMatch(
+                                paneGotFirstClicked,
+                                paneGotFirstClicked.getRowIndex(),
+                                paneGotFirstClicked.getColumnIndex()
+                        )
+                ) {
+                    System.out.println("horizontal match for first is found");
+                } if (
+                        checkForHorizontalMatch(
+                                paneGotSecondClicked,
+                                paneGotSecondClicked.getRowIndex(),
+                                paneGotSecondClicked.getColumnIndex())
+                ) {
+                    System.out.println("horizontal match for second is found");
 
+                } if (
+                        checkForVerticalMatch(
+                                paneGotFirstClicked,
+                                paneGotFirstClicked.getRowIndex(),
+                                paneGotFirstClicked.getColumnIndex()
+                        )
+                ) {
+                    System.out.println("vertical match for first is found");
+
+                } if (
+                        checkForVerticalMatch(
+                                paneGotSecondClicked,
+                                paneGotSecondClicked.getRowIndex(),
+                                paneGotSecondClicked.getColumnIndex()
+                        )
+                ) {
+                    System.out.println("vertical match for second is found");
+
+                }
                 paneGotFirstClicked = null;
                 paneGotSecondClicked = null;
             }
@@ -125,14 +172,34 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     }
 
     private void doHorizontalSwap(OwnStackPane first, OwnStackPane second) {
+
         first.setTranslateX(70);
         second.setTranslateX(-70);
+        updateArrayEntryAndObject(first, second);
+
     }
 
     private void doVerticalSwap(OwnStackPane first, OwnStackPane second) {
         first.setTranslateY(70);
         second.setTranslateY(-70);
+        updateArrayEntryAndObject(first, second);
     }
+
+    private void updateArrayEntryAndObject(OwnStackPane first, OwnStackPane second) {
+
+        int fromI = first.getRowIndex();
+        int fromJ = first.getColumnIndex();
+
+        int toI = second.getRowIndex();
+        int toJ = second.getColumnIndex();
+
+        array[fromI][fromJ] = second;
+        array[toI][toJ] = first;
+
+        array[fromI][fromJ].setIJ(new int[]{fromI, fromJ});
+        array[toI][toJ].setIJ(new int[]{toI, toJ});
+    }
+
 
     private void doDiagonalSwap(OwnStackPane first, OwnStackPane second) {
 
@@ -140,40 +207,40 @@ public class Main extends Application implements EventHandler<MouseEvent> {
 
     /**
      * @param shapeItHolds refers to the object in class OwnRectangle of type Shape
-     * @param i            index of parameter  refers to the row index in Grid and matrix
-     * @param j            refers to the column index in Grid and matrix
+     * @param rowIndex     index of parameter  refers to the row index in Grid and matrix
+     * @param columnIndex  refers to the column index in Grid and matrix
      * @return true if it founds a match
      */
     @Description("Main Method Zero")
-    private boolean checkForVerticalMatch(OwnStackPane shapeItHolds, int i, int j) {
-        if (i == 0) {
+    private boolean checkForVerticalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
+        if (rowIndex == 0) {
             if (
-                    shapeItHolds.equals(array[i + 1][j]) &&
-                            shapeItHolds.equals(array[i + 2][j])
+                    shapeItHolds.getId().equals(array[rowIndex + 1][columnIndex].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex + 2][columnIndex].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i + 1][j].getChildren().clear();
-                array[i + 2][j].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex + 1][columnIndex].getChildren().clear();
+                array[rowIndex + 2][columnIndex].getChildren().clear();
                 return true;
             }
-        } else if (i == 4) {
+        } else if (rowIndex == 4) {
             if (
-                    shapeItHolds.equals(array[i - 1][j]) &&
-                            shapeItHolds.equals(array[i - 2][j])
+                    shapeItHolds.getId().equals(array[rowIndex - 1][columnIndex].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex - 2][columnIndex].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i - 1][j].getChildren().clear();
-                array[i - 2][j].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex - 1][columnIndex].getChildren().clear();
+                array[rowIndex - 2][columnIndex].getChildren().clear();
                 return true;
             }
         } else {
             if (
-                    shapeItHolds.equals(array[i - 1][j]) &&
-                            shapeItHolds.equals(array[i + 1][j])
+                    shapeItHolds.getId().equals(array[rowIndex - 1][columnIndex].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex + 1][columnIndex].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i - 1][j].getChildren().clear();
-                array[i + 1][j].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex - 1][columnIndex].getChildren().clear();
+                array[rowIndex + 1][columnIndex].getChildren().clear();
             }
             return true;
         }
@@ -181,35 +248,35 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     }
 
     @Description("Main method One")
-    private boolean checkForHorizontalMatch(OwnStackPane shapeItHolds, int i, int j) {
-        if (j == 0) {
+    private boolean checkForHorizontalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
+        if (columnIndex == 0) {
             if (
-                    shapeItHolds.equals(array[i][j + 1]) &&
-                            shapeItHolds.equals(array[i][j + 2])
+                    shapeItHolds.getId().equals(array[rowIndex][columnIndex + 1].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex][columnIndex + 2].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i][j + 1].getChildren().clear();
-                array[i][j + 2].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex][columnIndex + 1].getChildren().clear();
+                array[rowIndex][columnIndex + 2].getChildren().clear();
                 return true;
             }
-        } else if (j == 4) {
+        } else if (columnIndex == 4) {
             if (
-                    shapeItHolds.equals(array[i][j - 1]) &&
-                            shapeItHolds.equals(array[i][j - 2])
+                    shapeItHolds.getId().equals(array[rowIndex][columnIndex - 1].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex][columnIndex - 2].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i][j - 1].getChildren().clear();
-                array[i][j - 2].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex][columnIndex - 1].getChildren().clear();
+                array[rowIndex][columnIndex - 2].getChildren().clear();
                 return true;
             }
         } else {
             if (
-                    shapeItHolds.equals(array[i][j - 1]) &&
-                            shapeItHolds.equals(array[i][j + 1])
+                    shapeItHolds.getId().equals(array[rowIndex][columnIndex - 1].getId()) &&
+                            shapeItHolds.getId().equals(array[rowIndex][columnIndex + 1].getId())
             ) {
-                array[i][j].getChildren().clear();
-                array[i][j - 1].getChildren().clear();
-                array[i][j + 1].getChildren().clear();
+                array[rowIndex][columnIndex].getChildren().clear();
+                array[rowIndex][columnIndex - 1].getChildren().clear();
+                array[rowIndex][columnIndex + 1].getChildren().clear();
                 return true;
             }
         }
@@ -217,27 +284,28 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     }
 
 //    @Description("Main method Two")
-//    private boolean checkForDiagonalMatch(OwnStackPane shapeItHolds, int i, int j) {
+//    private boolean checkForDiagonalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
 //
 //    }
 
     private boolean isDiagonalSwap() {
-        return ((Math.abs(paneGotFirstClicked.getI() - paneGotSecondClicked.getI()) == 1) &&
-                (Math.abs(paneGotFirstClicked.getJ() - paneGotSecondClicked.getJ()) == 1)
+        return ((Math.abs(paneGotFirstClicked.getRowIndex() - paneGotSecondClicked.getRowIndex()) == 1) &&
+                (Math.abs(paneGotFirstClicked.getColumnIndex() - paneGotSecondClicked.getColumnIndex()) == 1)
         );
     }
 
     /**
      * for filling up board at start &
      * after every triplets match
+     * --> filling up => column wise
      */
     private void fillUpBoard() {
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                OwnStackPane stackPane = getStackPane(i, j);
-                if (array[j][i] == null) {
-                    gridPane.add(stackPane, j, i);
-                    array[j][i] = (stackPane);
+        for (int rowIndex = 0; rowIndex < array.length; rowIndex++) {
+            for (int columnIndex = 0; columnIndex < array[0].length; columnIndex++) {
+                OwnStackPane stackPane = getStackPane(rowIndex, columnIndex);
+                if (array[rowIndex][columnIndex] == null) {
+                    gridPane.add(stackPane, columnIndex, rowIndex);
+                    array[rowIndex][columnIndex] = stackPane;
                 }
             }
         }
@@ -278,15 +346,43 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         };
     }
 
-    private OwnStackPane getStackPane(int i, int j) {
-        OwnStackPane stackPane = new OwnStackPane(i, j);
+    private OwnStackPane getStackPane(int rowIndex, int columnIndex) {
+        OwnStackPane stackPane = new OwnStackPane(rowIndex, columnIndex);
         stackPane.setAlignment(Pos.CENTER);
         Shape randomShape = getRandomShape();
+
+        int id;
+        if ((randomShape instanceof Rectangle) &&
+                (((Rectangle) randomShape).getWidth() == ((Rectangle) randomShape).getHeight())
+        ) { // for square as in last case in getRandomShape() method
+            id = 4;
+        } else if (randomShape instanceof Polygon) {
+            id = 1;
+        } else if (randomShape instanceof Ellipse) {
+            id = 2;
+        } else if (randomShape instanceof Circle) {
+            id = 3;
+        } else { //for rectangle as in first case getRandomShape() method
+            id = 0;
+        }
+
+        stackPane.setId(id + "");
         randomShape.setOpacity(0.7);
         stackPane.getChildren().add(randomShape);
         stackPane.setOnMouseClicked(this);
         stackPane.setCursor(Cursor.HAND);
         return stackPane;
+    }
+
+    private void printArray() {
+        System.out.println();
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                System.out.println(array[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
     public static void main(String[] args) {
