@@ -27,7 +27,7 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     private static OwnStackPane paneGotSecondClicked = null;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         Label label = getLabel(primaryStage);
         gridPane = getGridPane();
 
@@ -99,6 +99,7 @@ public class Main extends Application implements EventHandler<MouseEvent> {
             }
 
             if (paneGotSecondClicked != null) {
+                System.out.println("diagonal swap possible? " + isDiagonalSwap());
                 if (
                         (paneGotFirstClicked.getColumnIndex() < paneGotSecondClicked.getColumnIndex()) &&
                                 (paneGotFirstClicked.isISame(paneGotSecondClicked))
@@ -128,7 +129,6 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                     System.out.println("second: " + paneGotSecondClicked);
                     doVerticalSwap(paneGotSecondClicked, paneGotFirstClicked);
                 }
-//                printArray();
 
                 if (
                         checkForHorizontalMatch(
@@ -138,7 +138,8 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                         )
                 ) {
                     System.out.println("horizontal match for first is found");
-                } if (
+                }
+                if (
                         checkForHorizontalMatch(
                                 paneGotSecondClicked,
                                 paneGotSecondClicked.getRowIndex(),
@@ -146,7 +147,8 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 ) {
                     System.out.println("horizontal match for second is found");
 
-                } if (
+                }
+                if (
                         checkForVerticalMatch(
                                 paneGotFirstClicked,
                                 paneGotFirstClicked.getRowIndex(),
@@ -155,7 +157,8 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 ) {
                     System.out.println("vertical match for first is found");
 
-                } if (
+                }
+                if (
                         checkForVerticalMatch(
                                 paneGotSecondClicked,
                                 paneGotSecondClicked.getRowIndex(),
@@ -165,6 +168,10 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                     System.out.println("vertical match for second is found");
 
                 }
+
+                percolateDownShapes();
+                fillSpaces();
+
                 paneGotFirstClicked = null;
                 paneGotSecondClicked = null;
             }
@@ -200,10 +207,9 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         array[toI][toJ].setIJ(new int[]{toI, toJ});
     }
 
-
-    private void doDiagonalSwap(OwnStackPane first, OwnStackPane second) {
-
-    }
+//    private void doDiagonalSwap(OwnStackPane first, OwnStackPane second) {
+//
+//    }
 
     /**
      * @param shapeItHolds refers to the object in class OwnRectangle of type Shape
@@ -295,17 +301,28 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     }
 
     /**
-     * for filling up board at start &
-     * after every triplets match
+     * for filling up board at start
      * --> filling up => column wise
      */
     private void fillUpBoard() {
         for (int rowIndex = 0; rowIndex < array.length; rowIndex++) {
             for (int columnIndex = 0; columnIndex < array[0].length; columnIndex++) {
                 OwnStackPane stackPane = getStackPane(rowIndex, columnIndex);
-                if (array[rowIndex][columnIndex] == null) {
+                if ((array[rowIndex][columnIndex] == null)) {
                     gridPane.add(stackPane, columnIndex, rowIndex);
                     array[rowIndex][columnIndex] = stackPane;
+                }
+            }
+        }
+    }
+
+    private void fillSpaces() {
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                if (array[i][j].getChildren().isEmpty()) {
+                    OwnStackPane stackPane = getStackPane(i, j);
+                    gridPane.add(stackPane, j, i);
+                    array[i][j] = stackPane;
                 }
             }
         }
@@ -374,15 +391,42 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         return stackPane;
     }
 
-    private void printArray() {
-        System.out.println();
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                System.out.println(array[i][j]);
+//    private void printArray() {
+//        System.out.println();
+//        for (int i = 0; i < array.length; i++) {
+//            for (int j = 0; j < array[0].length; j++) {
+//                System.out.println(array[i][j]);
+//            }
+//            System.out.println();
+//        }
+//        System.out.println();
+//    }
+
+    private void percolateDownShapes() {
+        for (int columnIndex = (array[0].length - 1); columnIndex >= 0; columnIndex--) {
+            OwnStackPane lastPaneGot = array[0][columnIndex];
+            int multiplier = 0;
+            for (int rowIndex = 0; rowIndex < 5; rowIndex++) {
+                OwnStackPane fromArray = array[rowIndex][columnIndex];
+                if (fromArray.getChildren().isEmpty()) {
+                    multiplier += 1;
+                } else {
+                    lastPaneGot = fromArray;
+                }
             }
-            System.out.println();
+
+            while (true) {
+                lastPaneGot.setTranslateY(multiplier * 70);
+                lastPaneGot.setIJ(new int[]{multiplier + lastPaneGot.getRowIndex(), lastPaneGot.getColumnIndex()});
+                lastPaneGot.getChildren().clear();
+                System.out.println("columnIndex: " + columnIndex);
+                System.out.println("rowIndex: " + lastPaneGot.getRowIndex());
+                lastPaneGot = array[columnIndex][lastPaneGot.getRowIndex() - 1];
+                if (!(lastPaneGot.getChildren().isEmpty())) {
+                    break;
+                }
+            }
         }
-        System.out.println();
     }
 
     public static void main(String[] args) {

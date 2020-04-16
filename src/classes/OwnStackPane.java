@@ -5,7 +5,6 @@ import javafx.scene.layout.StackPane;
 public class OwnStackPane extends StackPane {
     private int rowIndex;
     private int columnIndex;
-    private int idOfShape;
 
     public OwnStackPane(int rowIndex, int columnIndex) {
         super();
@@ -40,14 +39,6 @@ public class OwnStackPane extends StackPane {
 
     public boolean isJSame(OwnStackPane second) {
         return (this.getColumnIndex() == second.getColumnIndex());
-    }
-
-    public int getIdOfShape() {
-        return idOfShape;
-    }
-
-    public void setIdOfShape(int idOfShape) {
-        this.idOfShape = idOfShape;
     }
 
     @Override
