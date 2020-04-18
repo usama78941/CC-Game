@@ -16,7 +16,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.stage.Stage;
-import jdk.jfr.Description;
 
 public class Main extends Application implements EventHandler<MouseEvent> {
 
@@ -25,10 +24,13 @@ public class Main extends Application implements EventHandler<MouseEvent> {
     private static GridPane gridPane;
     private static OwnStackPane paneGotFirstClicked = null;
     private static OwnStackPane paneGotSecondClicked = null;
+    private static Label label;
+    private static final int horizontalVerticalScore = 3;
+    private static final int diagonalScore = 10;
 
     @Override
     public void start(Stage primaryStage) {
-        Label label = getLabel(primaryStage);
+        label = getLabel(primaryStage);
         gridPane = getGridPane();
 
         Button startButton = new Button("Start");
@@ -99,79 +101,87 @@ public class Main extends Application implements EventHandler<MouseEvent> {
             }
 
             if (paneGotSecondClicked != null) {
-                System.out.println("diagonal swap possible? " + isDiagonalSwap());
-                if (
-                        (paneGotFirstClicked.getColumnIndex() < paneGotSecondClicked.getColumnIndex()) &&
-                                (paneGotFirstClicked.isISame(paneGotSecondClicked))
-                ) {
-                    System.out.println("first: " + paneGotFirstClicked);
-                    System.out.println("second: " + paneGotSecondClicked);
-                    doHorizontalSwap(paneGotFirstClicked, paneGotSecondClicked);
-                } else if (
-                        (paneGotFirstClicked.getColumnIndex() > paneGotSecondClicked.getColumnIndex()) &&
-                                (paneGotFirstClicked.isISame(paneGotSecondClicked))
-                ) {
-                    System.out.println("first: " + paneGotFirstClicked);
-                    System.out.println("second: " + paneGotSecondClicked);
-                    doHorizontalSwap(paneGotSecondClicked, paneGotFirstClicked);
-                } else if (
-                        (paneGotFirstClicked.getRowIndex() < paneGotSecondClicked.getRowIndex()) &&
-                                (paneGotFirstClicked.isJSame(paneGotSecondClicked))
-                ) {
-                    System.out.println("first: " + paneGotFirstClicked);
-                    System.out.println("second: " + paneGotSecondClicked);
-                    doVerticalSwap(paneGotFirstClicked, paneGotSecondClicked);
-                } else if (
-                        (paneGotFirstClicked.getRowIndex() > paneGotSecondClicked.getRowIndex()) &&
-                                (paneGotFirstClicked.isJSame(paneGotSecondClicked))
-                ) {
-                    System.out.println("first: " + paneGotFirstClicked);
-                    System.out.println("second: " + paneGotSecondClicked);
-                    doVerticalSwap(paneGotSecondClicked, paneGotFirstClicked);
-                }
+                if (isDiagonalSwap()) {
+                    if (
+                            (paneGotFirstClicked.getRowIndex() < paneGotSecondClicked.getRowIndex()) &&
+                                    (paneGotFirstClicked.getColumnIndex() > paneGotSecondClicked.getColumnIndex())
+                    ) {
+                        doDiagonalSwapRTL(paneGotFirstClicked, paneGotSecondClicked);
+                    } else {
+                        doDiagonalSwapLTR(paneGotFirstClicked, paneGotSecondClicked);
+                    }
+                } else {
+                    if ((paneGotFirstClicked.getColumnIndex() < paneGotSecondClicked.getColumnIndex()) && (paneGotFirstClicked.isISame(paneGotSecondClicked))) {
+                        doHorizontalSwap(paneGotFirstClicked, paneGotSecondClicked);
+                    } else if ((paneGotFirstClicked.getColumnIndex() > paneGotSecondClicked.getColumnIndex()) &&
+                            (paneGotFirstClicked.isISame(paneGotSecondClicked))) {
+                        doHorizontalSwap(paneGotSecondClicked, paneGotFirstClicked);
+                    } else if ((paneGotFirstClicked.getRowIndex() < paneGotSecondClicked.getRowIndex()) && (paneGotFirstClicked.isJSame(paneGotSecondClicked))) {
+                        doVerticalSwap(paneGotFirstClicked, paneGotSecondClicked);
+                    } else if ((paneGotFirstClicked.getRowIndex() > paneGotSecondClicked.getRowIndex()) && (paneGotFirstClicked.isJSame(paneGotSecondClicked))
+                    ) {
+                        doVerticalSwap(paneGotSecondClicked, paneGotFirstClicked);
+                    }
+                    if (
+                            checkForHorizontalMatch(
+                                    paneGotFirstClicked,
+                                    paneGotFirstClicked.getRowIndex(),
+                                    paneGotFirstClicked.getColumnIndex()
+                            )
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + horizontalVerticalScore));
+                    } else if (
+                            checkForHorizontalMatch(
+                                    paneGotSecondClicked,
+                                    paneGotSecondClicked.getRowIndex(),
+                                    paneGotSecondClicked.getColumnIndex())
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + horizontalVerticalScore));
+                    } else if (
+                            checkForVerticalMatch(
+                                    paneGotFirstClicked,
+                                    paneGotFirstClicked.getRowIndex(),
+                                    paneGotFirstClicked.getColumnIndex()
+                            )
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + horizontalVerticalScore));
 
-                if (
-                        checkForHorizontalMatch(
-                                paneGotFirstClicked,
-                                paneGotFirstClicked.getRowIndex(),
-                                paneGotFirstClicked.getColumnIndex()
-                        )
-                ) {
-                    System.out.println("horizontal match for first is found");
-                }
-                if (
-                        checkForHorizontalMatch(
-                                paneGotSecondClicked,
-                                paneGotSecondClicked.getRowIndex(),
-                                paneGotSecondClicked.getColumnIndex())
-                ) {
-                    System.out.println("horizontal match for second is found");
+                        System.out.println("vertical match for first is found");
+                    } else if (
+                            checkForVerticalMatch(
+                                    paneGotSecondClicked,
+                                    paneGotSecondClicked.getRowIndex(),
+                                    paneGotSecondClicked.getColumnIndex()
+                            )
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + horizontalVerticalScore));
+                    } else if (
+                            checkForDiagonalMatch(
+                                    paneGotFirstClicked,
+                                    paneGotFirstClicked.getRowIndex(),
+                                    paneGotFirstClicked.getColumnIndex())
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + diagonalScore));
+                        System.out.println("diagonal match for first is found");
+                    } else if (
+                            checkForDiagonalMatch(
+                                    paneGotSecondClicked,
+                                    paneGotSecondClicked.getRowIndex(),
+                                    paneGotSecondClicked.getColumnIndex()
+                            )
+                    ) {
+                        label.setText("Score: " +
+                                (Integer.parseInt(label.getText().split(":")[1].trim()) + diagonalScore));
+                        System.out.println("diagonal match for second is found");
 
+                    }
                 }
-                if (
-                        checkForVerticalMatch(
-                                paneGotFirstClicked,
-                                paneGotFirstClicked.getRowIndex(),
-                                paneGotFirstClicked.getColumnIndex()
-                        )
-                ) {
-                    System.out.println("vertical match for first is found");
-
-                }
-                if (
-                        checkForVerticalMatch(
-                                paneGotSecondClicked,
-                                paneGotSecondClicked.getRowIndex(),
-                                paneGotSecondClicked.getColumnIndex()
-                        )
-                ) {
-                    System.out.println("vertical match for second is found");
-
-                }
-
                 percolateDownShapes();
-                fillSpaces();
-
                 paneGotFirstClicked = null;
                 paneGotSecondClicked = null;
             }
@@ -183,7 +193,6 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         first.setTranslateX(70);
         second.setTranslateX(-70);
         updateArrayEntryAndObject(first, second);
-
     }
 
     private void doVerticalSwap(OwnStackPane first, OwnStackPane second) {
@@ -192,8 +201,29 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         updateArrayEntryAndObject(first, second);
     }
 
-    private void updateArrayEntryAndObject(OwnStackPane first, OwnStackPane second) {
+    private boolean isDiagonalSwap() {
+        return ((Math.abs(paneGotFirstClicked.getRowIndex() - paneGotSecondClicked.getRowIndex()) == 1) &&
+                (Math.abs(paneGotFirstClicked.getColumnIndex() - paneGotSecondClicked.getColumnIndex()) == 1)
+        );
+    }
 
+    private void doDiagonalSwapRTL(OwnStackPane first, OwnStackPane second) {
+        first.setTranslateY(70);
+        first.setTranslateX(-70);
+        second.setTranslateY(-70);
+        second.setTranslateX(70);
+        updateArrayEntryAndObject(first, second);
+    }
+
+    private void doDiagonalSwapLTR(OwnStackPane first, OwnStackPane second) {
+        first.setTranslateY(70);
+        first.setTranslateX(70);
+        second.setTranslateX(-70);
+        second.setTranslateY(-70);
+        updateArrayEntryAndObject(first, second);
+    }
+
+    private void updateArrayEntryAndObject(OwnStackPane first, OwnStackPane second) {
         int fromI = first.getRowIndex();
         int fromJ = first.getColumnIndex();
 
@@ -207,19 +237,14 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         array[toI][toJ].setIJ(new int[]{toI, toJ});
     }
 
-//    private void doDiagonalSwap(OwnStackPane first, OwnStackPane second) {
-//
-//    }
-
     /**
      * @param shapeItHolds refers to the object in class OwnRectangle of type Shape
      * @param rowIndex     index of parameter  refers to the row index in Grid and matrix
      * @param columnIndex  refers to the column index in Grid and matrix
      * @return true if it founds a match
      */
-    @Description("Main Method Zero")
     private boolean checkForVerticalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
-        if (rowIndex == 0) {
+        if (rowIndex <= 2) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex + 1][columnIndex].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex + 2][columnIndex].getId())
@@ -229,7 +254,8 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 array[rowIndex + 2][columnIndex].getChildren().clear();
                 return true;
             }
-        } else if (rowIndex == 4) {
+        }
+        if (rowIndex >= 2) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex - 1][columnIndex].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex - 2][columnIndex].getId())
@@ -239,7 +265,9 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 array[rowIndex - 2][columnIndex].getChildren().clear();
                 return true;
             }
-        } else {
+        }
+
+        if (rowIndex > 1) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex - 1][columnIndex].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex + 1][columnIndex].getId())
@@ -247,15 +275,16 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 array[rowIndex][columnIndex].getChildren().clear();
                 array[rowIndex - 1][columnIndex].getChildren().clear();
                 array[rowIndex + 1][columnIndex].getChildren().clear();
+                return true;
             }
-            return true;
         }
+
         return false;
     }
 
-    @Description("Main method One")
+    // same as for checkForVerticalMatch
     private boolean checkForHorizontalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
-        if (columnIndex == 0) {
+        if (columnIndex <= 2) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex][columnIndex + 1].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex][columnIndex + 2].getId())
@@ -265,7 +294,8 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 array[rowIndex][columnIndex + 2].getChildren().clear();
                 return true;
             }
-        } else if (columnIndex == 4) {
+        }
+        if (columnIndex >= 2) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex][columnIndex - 1].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex][columnIndex - 2].getId())
@@ -275,7 +305,9 @@ public class Main extends Application implements EventHandler<MouseEvent> {
                 array[rowIndex][columnIndex - 2].getChildren().clear();
                 return true;
             }
-        } else {
+        }
+
+        if (columnIndex > 1) {
             if (
                     shapeItHolds.getId().equals(array[rowIndex][columnIndex - 1].getId()) &&
                             shapeItHolds.getId().equals(array[rowIndex][columnIndex + 1].getId())
@@ -289,15 +321,34 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         return false;
     }
 
-//    @Description("Main method Two")
-//    private boolean checkForDiagonalMatch(OwnStackPane shapeItHolds, int rowIndex, int columnIndex) {
-//
-//    }
-
-    private boolean isDiagonalSwap() {
-        return ((Math.abs(paneGotFirstClicked.getRowIndex() - paneGotSecondClicked.getRowIndex()) == 1) &&
-                (Math.abs(paneGotFirstClicked.getColumnIndex() - paneGotSecondClicked.getColumnIndex()) == 1)
-        );
+    // same as for checkForVerticalMatch
+    private boolean checkForDiagonalMatch(OwnStackPane paneGotFirstClicked, int rowIndex, int columnIndex) {
+        if (paneGotFirstClicked.getRowIndex() < 3 && paneGotFirstClicked.getColumnIndex() < 3) {
+            if (
+                    paneGotFirstClicked.getId().equals(array[rowIndex + 1][columnIndex + 1].getId()) &&
+                            paneGotFirstClicked.getId().equals(array[rowIndex + 2][columnIndex + 2].getId())
+            ) {
+                paneGotFirstClicked.getChildren().clear();
+                array[rowIndex + 1][columnIndex + 1].getChildren().clear();
+                array[rowIndex + 2][columnIndex + 2].getChildren().clear();
+                return true;
+            }
+        } else if (paneGotFirstClicked.getRowIndex() < 0 && paneGotFirstClicked.getColumnIndex() < 0) {
+            if (paneGotFirstClicked.getId().equals(array[rowIndex + 1][columnIndex + 1].getId()) && paneGotFirstClicked.getId().equals(array[rowIndex - 1][columnIndex - 1].getId())) {
+                paneGotFirstClicked.getChildren().clear();
+                array[rowIndex + 1][columnIndex + 1].getChildren().clear();
+                array[rowIndex - 1][columnIndex - 1].getChildren().clear();
+                return true;
+            }
+        } else if ((paneGotFirstClicked.getRowIndex() > 2) && paneGotFirstClicked.getColumnIndex() > 2) {
+            if (paneGotFirstClicked.getId().equals(array[rowIndex - 1][columnIndex - 1].getId()) && paneGotFirstClicked.getId().equals(array[rowIndex - 2][columnIndex - 2].getId())) {
+                paneGotFirstClicked.getChildren().clear();
+                array[rowIndex - 1][columnIndex - 1].getChildren().clear();
+                array[rowIndex - 2][columnIndex - 2].getChildren().clear();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -316,14 +367,12 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         }
     }
 
-    private void fillSpaces() {
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                if (array[i][j].getChildren().isEmpty()) {
-                    OwnStackPane stackPane = getStackPane(i, j);
-                    gridPane.add(stackPane, j, i);
-                    array[i][j] = stackPane;
-                }
+    private void fillSpaces(int columnIndex) {
+        for (int rowIndex = (array.length - 1); rowIndex >= 0; rowIndex--) {
+            if (array[rowIndex][columnIndex].getChildren().isEmpty()) {
+                OwnStackPane stackPane = getStackPane(rowIndex, columnIndex);
+                gridPane.add(stackPane, columnIndex, rowIndex);
+                array[rowIndex][columnIndex] = stackPane;
             }
         }
     }
@@ -391,41 +440,39 @@ public class Main extends Application implements EventHandler<MouseEvent> {
         return stackPane;
     }
 
-//    private void printArray() {
-//        System.out.println();
-//        for (int i = 0; i < array.length; i++) {
-//            for (int j = 0; j < array[0].length; j++) {
-//                System.out.println(array[i][j]);
-//            }
-//            System.out.println();
-//        }
-//        System.out.println();
-//    }
-
     private void percolateDownShapes() {
-        for (int columnIndex = (array[0].length - 1); columnIndex >= 0; columnIndex--) {
-            OwnStackPane lastPaneGot = array[0][columnIndex];
+        for (int columnIndex = 0; columnIndex < array[0].length; columnIndex++) {
             int multiplier = 0;
-            for (int rowIndex = 0; rowIndex < 5; rowIndex++) {
-                OwnStackPane fromArray = array[rowIndex][columnIndex];
-                if (fromArray.getChildren().isEmpty()) {
+            OwnStackPane lastOne = array[0][columnIndex];
+
+            //noinspection ForLoopReplaceableByForEach
+            for (int rowIndex = 0; rowIndex < array.length; rowIndex++) {
+                OwnStackPane now = array[rowIndex][columnIndex];
+                if (now.getChildren().isEmpty()) {
                     multiplier += 1;
+                } else if ((multiplier >= 1) && !(now.getChildren().isEmpty())) {
+                    break;
                 } else {
-                    lastPaneGot = fromArray;
+                    lastOne = now;
                 }
             }
 
             while (true) {
-                lastPaneGot.setTranslateY(multiplier * 70);
-                lastPaneGot.setIJ(new int[]{multiplier + lastPaneGot.getRowIndex(), lastPaneGot.getColumnIndex()});
-                lastPaneGot.getChildren().clear();
-                System.out.println("columnIndex: " + columnIndex);
-                System.out.println("rowIndex: " + lastPaneGot.getRowIndex());
-                lastPaneGot = array[columnIndex][lastPaneGot.getRowIndex() - 1];
-                if (!(lastPaneGot.getChildren().isEmpty())) {
+                if (multiplier > 0) {
+                    lastOne.setTranslateY(multiplier * 70);
+                    int i = lastOne.getRowIndex(), j = lastOne.getColumnIndex();
+                    lastOne.setIJ(new int[]{(lastOne.getRowIndex() + (multiplier)), lastOne.getColumnIndex()});
+                    array[lastOne.getRowIndex()][lastOne.getColumnIndex()] = lastOne;
+                    if (i > 0) {
+                        lastOne = array[i - 1][j];
+                    } else {
+                        break;
+                    }
+                } else {
                     break;
                 }
             }
+            fillSpaces(columnIndex);
         }
     }
 
